@@ -1,12 +1,14 @@
 
 import './App.css'
-// phong
+
+import Login from './Pages/Login.jsx'
+import Home from './Pages/Home.jsx'
 
 function App() {
 
   return (
     <>
-      <div className='text-red-200'>afasd</div>
+      <Login />
     </>
   )
 }
