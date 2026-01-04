@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react'
 import axios from 'axios'
 
@@ -10,9 +11,11 @@ const Login = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [token, setToken] = useState('');
+  const [useProxy, setUseProxy] = useState(false);
 
   const proxyUrl = 'https://api.allorigins.win/raw?url='
-  const apiUrl = encodeURIComponent('http://lib.hpu.edu.vn/rest/login')
+  const apiUrl = encodeURIComponent('rest/login')
 
   const handleChange = (e) => {
     setFormData({
@@ -29,14 +32,48 @@ const Login = () => {
 
     try {
       // Axios tự động parse JSON, không cần .json()
-      const response = await axios.post(proxyUrl + apiUrl, {
-        email: formData.email,
-        password: formData.password
+      const formDataToSend = new FormData()
+      formDataToSend.append('email', formData.email)
+      formDataToSend.append('password', formData.password)
+
+      const response = await axios.post(proxyUrl + apiUrl, formDataToSend, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
       })
 
+      // const response = await axios.post(`${API_ROOT}/login`, {
+      //   email: formData.email,
+      //   password: formData.password
+      // }, {
+      //   headers: {
+      //     'Content-Type': 'application/json'
+      //   }
+      // })
+
       // Với axios, data nằm trong response.data
-      const data = response.data
+      const data = response
       console.log('Response data:', data)
+      // if (data.status === 200 || data.status === 204) {
+      //   // Lấy token từ header
+      //   const authToken = data.headers['authorization'] || 
+      //                     data.headers['dspace-xsrf-token'] ||
+      //                     data.headers['x-xsrf-token'] ||
+      //                     data.data;
+
+      //   if (authToken) {
+      //     setToken(authToken);
+      //     setSuccess(true);
+      //     setError('');
+      //   } else {
+      //     // Nếu không có token, có thể là cookie-based
+      //     setSuccess(true);
+      //     setToken('Token saved in cookies (check browser DevTools)');
+      //     setError('');
+      //   }
+      // } else {
+      //   setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+      // }
 
       if (data.token) {
         // Lưu token vào localStorage
@@ -133,10 +170,6 @@ const Login = () => {
           >
             {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
           </button>
-        </div>
-
-        <div className="mt-6 text-center text-sm text-gray-600">
-          <p>Chưa có tài khoản? <a href="#" className="text-blue-600 hover:underline">Đăng ký ngay</a></p>
         </div>
       </div>
     </div>
