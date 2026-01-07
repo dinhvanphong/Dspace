@@ -5,14 +5,7 @@ import { toast } from 'react-toastify';
 
 
 const RequireAuth = ({ children }) => {
-  const notify = () => toast.success('Đăng nhập thành công!', {
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: false,
-    draggable: true,
-    progress: undefined,
-    // transition: Bounce,
-  });
+
   const [loading, setLoading] = useState(true)
   const [auth, setAuth] = useState(false)
 
@@ -37,6 +30,7 @@ const RequireAuth = ({ children }) => {
 
   if (loading) return <div>Checking login...</div>
 
+  // return auth ? children : <Navigate to="/" replace />
   return auth ? children : <Navigate to="/" replace />
 }
 
