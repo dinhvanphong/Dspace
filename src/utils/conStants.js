@@ -1,1 +1,1 @@
-export const API_ROOT = 'http://lib.hpu.edu.vn/rest'
+export const API_ROOT = 'https://lib.hpu.edu.vn/rest'

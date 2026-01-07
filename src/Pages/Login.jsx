@@ -3,126 +3,94 @@ import React, { useState } from 'react'
 import axios from 'axios'
 
 import {API_ROOT} from '../utils/conStants.js'
+import { useNavigate } from 'react-router-dom'
+
 const Login = () => {
+
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: 'tuyendv@hpu.edu.vn',
     password: '123654'
-  })
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
   const [token, setToken] = useState('');
-  const [useProxy, setUseProxy] = useState(false);
 
-  const proxyUrl = 'https://api.allorigins.win/raw?url='
-  const apiUrl = encodeURIComponent('rest/login')
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
 
+    try {
+      // Tạo form-urlencoded body
+      const formBody = new URLSearchParams();
+      formBody.append('email', formData.email);
+      formBody.append('password', formData.password);
+
+      const response = await fetch('/rest/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: formBody.toString(),
+        credentials: 'include' // Quan trọng!
+      });
+
+      console.log('Status:', response);
+
+      if (response.status === 200 || response.status === 204) {
+          navigate('/home') // hoặc '/'
+
+        // setSuccess(true)
+
+        // // 🔍 (khuyến nghị) kiểm tra trạng thái login
+        // const statusRes = await fetch('/rest/status', {
+        //   credentials: 'include'
+        // })
+        // console.log(statusRes)
+        // if (statusRes.ok) {
+        //   // ✅ Đăng nhập thật sự thành công → chuyển trang
+        //   navigate('/home') // hoặc '/'
+        // } else {
+        //   setError('Login chưa hoàn tất (session chưa được tạo)')
+        // }
+      } else if (response.status === 401) {
+        setError('Email hoặc password không đúng!');
+      }
+
+    } catch (err) {
+      console.error('Error:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
-    })
-    setError('')
-  }
+    });
+    setError('');
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-
-    try {
-      // Axios tự động parse JSON, không cần .json()
-      const formDataToSend = new FormData()
-      formDataToSend.append('email', formData.email)
-      formDataToSend.append('password', formData.password)
-
-      const response = await axios.post(proxyUrl + apiUrl, formDataToSend, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-
-      // const response = await axios.post(`${API_ROOT}/login`, {
-      //   email: formData.email,
-      //   password: formData.password
-      // }, {
-      //   headers: {
-      //     'Content-Type': 'application/json'
-      //   }
-      // })
-
-      // Với axios, data nằm trong response.data
-      const data = response
-      console.log('Response data:', data)
-      // if (data.status === 200 || data.status === 204) {
-      //   // Lấy token từ header
-      //   const authToken = data.headers['authorization'] || 
-      //                     data.headers['dspace-xsrf-token'] ||
-      //                     data.headers['x-xsrf-token'] ||
-      //                     data.data;
-
-      //   if (authToken) {
-      //     setToken(authToken);
-      //     setSuccess(true);
-      //     setError('');
-      //   } else {
-      //     // Nếu không có token, có thể là cookie-based
-      //     setSuccess(true);
-      //     setToken('Token saved in cookies (check browser DevTools)');
-      //     setError('');
-      //   }
-      // } else {
-      //   setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
-      // }
-
-      if (data.token) {
-        // Lưu token vào localStorage
-        localStorage.setItem('authToken', data.token)
-        // Lưu thêm user info nếu có
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user))
-        }
-        setSuccess(true)
-        setTimeout(() => {
-          alert(`Đăng nhập thành công!\nToken: ${data.token.substring(0, 20)}...`)
-          // Chuyển hướng đến trang dashboard
-          // window.location.href = '/dashboard'
-          // hoặc dùng React Router: navigate('/dashboard')
-        }, 500)
-      } else {
-        setError('Không nhận được token từ server')
-      }
-    } catch (err) {
-      // Xử lý lỗi từ axios
-      if (err.response) {
-        // Server trả về lỗi
-        setError(err.response.data.message || 'Email hoặc mật khẩu không đúng')
-      } else if (err.request) {
-        // Lỗi CORS hoặc không kết nối được
-        setError('Không thể kết nối đến server. Vui lòng kiểm tra CORS hoặc kết nối mạng')
-      } else {
-        setError('Có lỗi xảy ra: ' + err.message)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg shadow-2xl w-full max-w-md p-8">
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          Đăng Nhập
+          Đăng Nhập DSpace
         </h2>
 
         {success && (
           <div className="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-            Đăng nhập thành công! 🎉
+            <div className="font-semibold mb-2">✅ Đăng nhập thành công!</div>
+
           </div>
         )}
 
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-            {error}
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+            ❌ {error}
           </div>
         )}
 
@@ -168,12 +136,20 @@ const Login = () => {
                 : 'bg-blue-600 hover:bg-blue-700 active:scale-95'
             }`}
           >
-            {loading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Đang đăng nhập...
+              </span>
+            ) : (
+              'Đăng Nhập'
+            )}
           </button>
         </div>
+
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Login
+export default Login;
